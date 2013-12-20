@@ -1,8 +1,10 @@
 <#
 
-Requires MySql.psm1
+Requires MySql libraries to be imported first, see posh-mysql
 
 #>
+
+
 
 Function Get-SynchroDataSource
 {
