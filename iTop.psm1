@@ -1121,7 +1121,7 @@ Function Invoke-SynchroExec
     }
 
     # send the web request and get the response
-    $res = Invoke-WebRequest -Method Post -Uri $uri -Body $requestBody -TimeoutSec 960
+    $res = Invoke-WebRequest -Method Post -Uri $uri -Body $requestBody -TimeoutSec 960 -UseBasicParsing
     if($res.StatusCode -eq 200)
     {
         $res
