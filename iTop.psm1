@@ -925,6 +925,49 @@ Function Get-VirtualMachine
     Get-iTopObject -objectClass 'VirtualMachine' -ouputFields $outputFields -uri $uri -authName $authName -authPwd $authPwd -oqlFilter $oqlFilter
 }
 
+Function Get-ApplicationSolution
+{
+    Param(
+        [Parameter(Mandatory=$True)][string]$authName,
+        [Parameter(Mandatory=$True)][string]$authPwd,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
+    )
+
+    Get-iTopObject -objectClass 'ApplicationSolution' -ouputFields $outputFields -uri $uri -authName $authName -authPwd $authPwd -oqlFilter $oqlFilter
+}
+
+Function Get-SynchroReplica
+{
+    Param(
+        [Parameter(Mandatory=$True)][string]$authName,
+        [Parameter(Mandatory=$True)][string]$authPwd,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
+    )
+
+    Get-iTopObject -objectClass 'SynchroReplica' -ouputFields $outputFields -uri $uri -authName $authName -authPwd $authPwd -oqlFilter $oqlFilter
+}
+
+Function Remove-FunctionalCI
+{
+    Param(
+        [Parameter(Mandatory=$True)][string]$authName,
+        [Parameter(Mandatory=$True)][string]$authPwd,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$True)]$ci
+    )
+
+    $operation = New-Object PSObject -Property @{
+        operation = 'core/delete'
+        class = $ci.finalclass
+        key = $ci.key
+    }
+
+    GenerateAndSendRequest -authName $authName -authPwd $authPwd -uri $uri -requestHash $operation
+}
 
 Function Set-FunctionalCI
 {
@@ -933,7 +976,9 @@ Function Set-FunctionalCI
         [Parameter(Mandatory=$True)][string]$authPwd,
         [Parameter(Mandatory=$True)][string]$uri,
         [Parameter(Mandatory=$True)]$ci,
-        [Parameter(Mandatory=$False)]$contacts
+        [Parameter(Mandatory=$False)]$contacts,
+        [Parameter(Mandatory=$False)]$applicationSolutions,
+        [Parameter(Mandatory=$False)]$orgId=$null
     )
 
 
@@ -946,14 +991,92 @@ Function Set-FunctionalCI
         $contacts_list += $contactHash
     }
 
-    $fields = New-Object PSObject -Property @{
-        contacts_list = $contacts_list
+    $applicationsolution_list = @()
+    foreach($applicationsolution in $applicationSolutions)
+    {
+        $appSolutionHash = @{}
+        $appSolutionHash.add("applicationsolution_id",("SELECT ApplicationSolution WHERE id = `"$($applicationsolution.key)`""))
+        $applicationsolution_list += $appSolutionHash
     }
-    
+
+    $fields = New-Object PSObject -Property @{
+    }
+
+    if($contacts_list.Count -gt 0)
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'contacts_list' -Value $contacts_list
+    }
+        if($applicationsolution_list.Count -gt 0)
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'applicationsolution_list' -Value $applicationsolution_list
+    }
+    if(![string]::IsNullOrEmpty($orgId))
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'org_id' -Value "SELECT Organization WHERE id = `"$orgId`""
+    }
+
     $operation = New-Object PSObject -Property @{ 
         operation = 'core/update'
         class = 'FunctionalCI'
         key = $ci.key
+        comment = 'update from API'
+        output_fields = '*'
+        fields = $fields
+    }
+    GenerateAndSendRequest -authName $authName -authPwd $authPwd -uri $uri -requestHash $operation
+}
+
+
+Function Set-CustomerContract
+{
+    Param(
+        [Parameter(Mandatory=$True)][string]$authName,
+        [Parameter(Mandatory=$True)][string]$authPwd,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$True)]$customerContract,
+        [Parameter(Mandatory=$False)]$contacts,
+        [Parameter(Mandatory=$False)]$functionalCIs,
+        [Parameter(Mandatory=$False)]$orgId=$null
+    )
+
+
+    # build our linked objects, iTop only want certain lookup fields per object, so we'll feed those in
+    $contacts_list = @()
+    foreach($contact in $contacts)
+    {
+        $contactHash = @{}
+        $contactHash.add("contact_id",("SELECT Contact WHERE id = `"$($contact.key)`""))
+        $contacts_list += $contactHash
+    }
+
+    $functionalcis_list = @()
+    foreach($functionalCI in $functionalCIs)
+    {
+        $functionalciHash = @{}
+        $functionalciHash.add("functionalci_id",("SELECT FunctionalCI WHERE id = `"$($functionalCI.key)`""))
+        $functionalcis_list += $functionalciHash
+    }
+
+    $fields = New-Object PSObject -Property @{
+    }
+
+    if($contacts_list.Count -gt 0)
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'contacts_list' -Value $contacts_list
+    }
+    if($functionalcis_list.Count -gt 0)
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'functionalcis_list' -Value $functionalcis_list
+    }
+    if(![string]::IsNullOrEmpty($orgId))
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'org_id' -Value "SELECT Organization WHERE id = `"$orgId`""
+    }
+
+    $operation = New-Object PSObject -Property @{ 
+        operation = 'core/update'
+        class = 'CustomerContract'
+        key = $customerContract.key
         comment = 'update from API'
         output_fields = '*'
         fields = $fields
@@ -1285,7 +1408,9 @@ Function GenerateAndSendRequest
     }
 }
 
+Export-ModuleMember -Function Remove-FunctionalCI
 
+Export-ModuleMember -Function Get-ApplicationSolution
 Export-ModuleMember -Function Get-Brand
 Export-ModuleMember -Function Get-Contact
 Export-ModuleMember -Function Get-CustomerContract
@@ -1303,6 +1428,7 @@ Export-ModuleMember -Function Get-Service
 Export-ModuleMember -Function Get-SLA
 Export-ModuleMember -Function Get-StorageSystem
 Export-ModuleMember -Function Get-SynchroDataSource
+Export-ModuleMember -Function Get-SynchroReplica
 Export-ModuleMember -Function Get-VirtualFarm
 Export-ModuleMember -Function Get-VirtualMachine
 
@@ -1323,5 +1449,6 @@ Export-ModuleMember -Function New-Organization
 Export-ModuleMember -Function New-Person
 
 Export-ModuleMember -Function Set-FunctionalCI
+Export-ModuleMember -Function Set-CustomerContract
 
 Export-ModuleMember -Function InsertObjectIntoSynchroDataSource
