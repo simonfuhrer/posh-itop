@@ -411,10 +411,12 @@ Function Get-Organization
     Param(
         [Parameter(Mandatory=$True)][string]$authName,
         [Parameter(Mandatory=$True)][string]$authPwd,
-        [Parameter(Mandatory=$True)][string]$uri
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
     )
 
-    Get-iTopObject -objectClass 'Organization' -ouputFields '*' -uri $uri -authName $authName -authPwd $authPwd
+    Get-iTopObject -objectClass 'Organization' -ouputFields '*' -uri $uri -authName $authName -authPwd $authPwd -oqlFilter $oqlFilter
 }
 
 Function Get-Contact
