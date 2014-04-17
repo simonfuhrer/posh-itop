@@ -980,7 +980,8 @@ Function Set-FunctionalCI
         [Parameter(Mandatory=$True)]$ci,
         [Parameter(Mandatory=$False)]$contacts,
         [Parameter(Mandatory=$False)]$applicationSolutions,
-        [Parameter(Mandatory=$False)]$orgId=$null
+        [Parameter(Mandatory=$False)]$orgId=$null,
+        [Parameter(Mandatory=$False)]$propertyBag=@{}
     )
 
 
@@ -1016,6 +1017,14 @@ Function Set-FunctionalCI
     {
         $fields | Add-Member -MemberType NoteProperty -Name 'org_id' -Value "SELECT Organization WHERE id = `"$orgId`""
     }
+    # Property bag can contain a Hashtable to property name/values
+    if($propertyBag.count -gt 0)
+    {
+        foreach($key in $propertyBag.keys)
+        {
+            $fields | Add-Member -MemberType NoteProperty -Name $key -Value $propertyBag[$key]
+        }
+    }
 
     $operation = New-Object PSObject -Property @{ 
         operation = 'core/update'
@@ -1038,11 +1047,12 @@ Function Set-CustomerContract
         [Parameter(Mandatory=$True)]$customerContract,
         [Parameter(Mandatory=$False)]$contacts,
         [Parameter(Mandatory=$False)]$functionalCIs,
-        [Parameter(Mandatory=$False)]$orgId=$null
+        [Parameter(Mandatory=$False)]$orgId=$null,
+        [Parameter(Mandatory=$False)]$cost_unit=$null
     )
 
 
-    # build our linked objects, iTop only want certain lookup fields per object, so we'll feed those in
+    # build our linked objects, iTop only wants certain lookup fields per object, so we'll feed those in
     $contacts_list = @()
     foreach($contact in $contacts)
     {
@@ -1073,6 +1083,10 @@ Function Set-CustomerContract
     if(![string]::IsNullOrEmpty($orgId))
     {
         $fields | Add-Member -MemberType NoteProperty -Name 'org_id' -Value "SELECT Organization WHERE id = `"$orgId`""
+    }
+    if(![string]::IsNullOrEmpty($cost_unit))
+    {
+        $fields | Add-Member -MemberType NoteProperty -Name 'cost_unit' -Value $cost_unit
     }
 
     $operation = New-Object PSObject -Property @{ 
