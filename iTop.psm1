@@ -4,6 +4,73 @@ Requires MySql libraries to be imported first, see posh-mysql
 
 #>
 
+Function Get-Software
+{
+<#
+    .Synopsis
+    Find software
+
+    .Description
+    Find software
+
+    .Parameter authName
+    Logon for the iTop web service
+
+    .Parameter authPwd
+    Password for the iTop web service
+
+    .Parameter uri
+    uri for the iTop web service
+
+    .Example
+    Get-Software -authName 'user' -authPwd 'password' -uri 'https://webservice.edu'
+
+    .Example
+    Get-Software -authName 'user' -authPwd 'password' -uri 'https://webservice.edu' -oqlFilter "WHERE name = 'MySQL'"
+
+#>
+    Param(
+        [Parameter(Mandatory=$True)][PSCredential]$credentials,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
+    )
+    Get-iTopObject -objectClass 'Software' -oqlFilter $oqlFilter -ouputFields $outputFields -uri $uri -credentials $credentials
+}
+
+Function Get-iTopLocation
+{
+<#
+    .Synopsis
+    Find software
+
+    .Description
+    Find software
+
+    .Parameter authName
+    Logon for the iTop web service
+
+    .Parameter authPwd
+    Password for the iTop web service
+
+    .Parameter uri
+    uri for the iTop web service
+
+    .Example
+    Get-Software -authName 'user' -authPwd 'password' -uri 'https://webservice.edu'
+
+    .Example
+    Get-Software -authName 'user' -authPwd 'password' -uri 'https://webservice.edu' -oqlFilter "WHERE name = 'MySQL'"
+
+#>
+    Param(
+        [Parameter(Mandatory=$True)][PSCredential]$credentials,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
+    )
+    Get-iTopObject -objectClass 'Location' -oqlFilter $oqlFilter -ouputFields $outputFields -uri $uri -credentials $credentials
+}
 
 
 Function Get-SynchroDataSource
@@ -34,9 +101,11 @@ Function Get-SynchroDataSource
 #>
     Param(
         [Parameter(Mandatory=$True)][PSCredential]$credentials,
-        [Parameter(Mandatory=$True)][string]$uri
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
     )
-    Get-iTopObject -objectClass 'SynchroDataSource' -ouputFields '*' -uri $uri -credentials $credentials
+    Get-iTopObject -objectClass 'SynchroDataSource' -oqlFilter $oqlFilter -ouputFields $outputFields -uri $uri -credentials $credentials
 }
 
 
@@ -134,10 +203,12 @@ Function Get-StorageSystem
 #>
     Param(
         [Parameter(Mandatory=$True)][PSCredential]$credentials,
-        [Parameter(Mandatory=$True)][string]$uri
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
     )
 
-    Get-iTopObject -objectClass 'StorageSystem' -ouputFields '*' -uri $uri -credentials $credentials
+    Get-iTopObject -objectClass 'StorageSystem' -oqlFilter $oqlFilter -ouputFields $outputFields -uri $uri -credentials $credentials
 }
 
 Function Get-LogicalVolume
@@ -201,10 +272,12 @@ Function Get-Brand
 
     Param(
         [Parameter(Mandatory=$True)][PSCredential]$credentials,
-        [Parameter(Mandatory=$True)][string]$uri
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
     )
 
-    Get-iTopObject -objectClass 'Brand' -ouputFields '*' -uri $uri -credentials $credentials
+    Get-iTopObject -objectClass 'Brand' -ouputFields $outputFields -oqlFilter $oqlFilter -uri $uri -credentials $credentials
 }
 
 Function Get-Model
@@ -233,10 +306,12 @@ Function Get-Model
 #>
     Param(
         [Parameter(Mandatory=$True)][PSCredential]$credentials,
-        [Parameter(Mandatory=$True)][string]$uri
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
     )
 
-    Get-iTopObject -objectClass 'Model' -ouputFields '*' -uri $uri -credentials $credentials
+    Get-iTopObject -objectClass 'Model' -ouputFields $outputFields -oqlFilter $oqlFilter -uri $uri -credentials $credentials
 }
 
 
@@ -334,10 +409,12 @@ Function Get-Server
 #>
     Param(
         [Parameter(Mandatory=$True)][PSCredential]$credentials,
-        [Parameter(Mandatory=$True)][string]$uri
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
     )
 
-    Get-iTopObject -objectClass 'Server' -ouputFields '*' -uri $uri -credentials $credentials
+    Get-iTopObject -objectClass 'Server' -oqlFilter $oqlFilter -ouputFields $outputFields -uri $uri -credentials $credentials
 }
 
 Function Get-VirtualFarm
@@ -408,6 +485,41 @@ Function Get-Hypervisor
     )
 
     Get-iTopObject -objectClass 'Hypervisor' -ouputFields $outputFields  -uri $uri -credentials $credentials -oqlFilter $oqlFilter
+}
+
+Function Get-DBServer
+{
+<#
+ .Synopsis
+  Get a dbserver or collection of dbservers
+
+ .Description
+  Get a dbserver or collection of dbservers
+
+ .Parameter authName
+  Logon for the iTop web service
+
+ .Parameter authPwd
+  Password for the iTop web service
+
+ .Parameter uri
+  uri for the iTop web service
+
+ .Example
+    Get-DBServer -authName 'user' -authPwd 'password' -uri 'https://webservice.edu' -oqlFilter "WHERE name = `'mySqlServer01`'" -outputFields 'name,id'
+    
+ .Example
+   Get-DBServer -authName 'user' -authPwd 'password' -uri 'https://webservice.edu' | Where {$_.Name -eq 'mySqlServer01'}
+
+#>
+    Param(
+        [Parameter(Mandatory=$True)][PSCredential]$credentials,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$False)][string]$oqlFilter,
+        [Parameter(Mandatory=$False)][string]$outputFields='*'
+    )
+
+    Get-iTopObject -objectClass 'DBServer' -ouputFields $outputFields  -uri $uri -credentials $credentials -oqlFilter $oqlFilter
 }
 
 Function Get-Organization
@@ -1035,7 +1147,7 @@ Function Remove-iTopObject
 
     $operation = New-Object PSObject -Property @{
         operation = 'core/delete'
-        class = $object.finalclass
+        class = $object.class
         key = $object.key
     }
 
@@ -1201,7 +1313,8 @@ Function Set-CustomerContract
         [Parameter(Mandatory=$False)]$orgId=$null,
         [Parameter(Mandatory=$False)]$cost_unit=$null,
         [Parameter(Mandatory=$False)]$start_date=$null,
-        [Parameter(Mandatory=$False)]$end_date=$null
+        [Parameter(Mandatory=$False)]$end_date=$null,
+        [Parameter(Mandatory=$False)]$services_list            # array of service to sla hash, get-linkservicetosla
     )
 
 
@@ -1255,9 +1368,61 @@ Function Set-CustomerContract
     {
         $propertyBag.Add('end_date',$end_date)
     }
+    if($PSBoundParameters.ContainsKey('services_list'))
+    {
+        $propertyBag.Add('services_list',$services_list)
+    }
 
 
     Set-iTopObject -credentials $credentials -uri $uri -iTopObject $customerContract -propertyBag $propertyBag
+
+}
+
+Function New-Software
+{
+    Param(
+        [Parameter(Mandatory=$True)][PSCredential]$credentials,
+        [Parameter(Mandatory=$True)][string]$uri,
+        [Parameter(Mandatory=$True)][string]$name,
+        [Parameter(Mandatory=$True)][string]$vendor,
+        [Parameter(Mandatory=$True)][string]$version,
+        [Parameter(Mandatory=$True)][string]$type
+    )
+    
+    $propertyBag = @{}
+    if($PSBoundParameters.ContainsKey('vendor'))
+    {
+        $propertyBag.Add('vendor',$vendor)
+    }
+    if($PSBoundParameters.ContainsKey('version'))
+    {
+        $propertyBag.Add('version',$version)
+    }
+        if($PSBoundParameters.ContainsKey('type'))
+    {
+        $propertyBag.Add('type',$type)
+    }
+
+    # Before creating check to see if it already exists using all 'keys'
+    $oqlFilter = "WHERE name = '$name'"
+    $propertyBag.Keys | % {$oqlFilter += " AND $_ = '$($propertyBag.$_)'"}
+
+    $thisSoftware = Get-Software -credentials $credentials -uri $uri -oqlFilter $oqlFilter
+    if(!$thisSoftware)
+    {
+        $fields = New-Object PSObject -Property @{
+            name = $name
+        }
+
+        $propertyBag.Keys | % {$fields | Add-Member -MemberType NoteProperty -Name $_ -Value $propertyBag.$_}
+
+        New-iTopObject -objectClass "Software" -fields $fields -credentials $credentials -uri $uri
+    }
+    else
+    {
+        $thisSoftware
+    }
+
 
 }
 
@@ -1589,6 +1754,11 @@ Function GenerateAndSendRequest
             # using the newer API, let's add the key
             $thisObject | Add-Member Noteproperty -Name "key" -Value $result.objects.$key.key
         }
+        if($result.objects.$key.class -ne $null)
+        {
+            # using the newer API, let's add the key
+            $thisObject | Add-Member Noteproperty -Name "class" -Value $result.objects.$key.class
+        }
         # put the object on the pipline
         $thisObject
     }
@@ -1601,10 +1771,12 @@ Export-ModuleMember -Function Get-ApplicationSolution
 Export-ModuleMember -Function Get-Brand
 Export-ModuleMember -Function Get-Contact
 Export-ModuleMember -Function Get-CustomerContract
+Export-ModuleMember -Function Get-DBServer
 Export-ModuleMember -Function Get-Enclosure
 Export-ModuleMember -Function Get-FunctionalCI
 Export-ModuleMember -Function Get-Hypervisor
 Export-ModuleMember -Function Get-iTopObject
+Export-ModuleMember -Function Get-iTopLocation
 Export-ModuleMember -Function Get-LinkServiceToSLA
 Export-ModuleMember -Function Get-LogicalVolume
 Export-ModuleMember -Function Get-Model
@@ -1615,6 +1787,7 @@ Export-ModuleMember -Function Get-Person
 Export-ModuleMember -Function Get-Server
 Export-ModuleMember -Function Get-Service
 Export-ModuleMember -Function Get-SLA
+Export-ModuleMember -Function Get-Software
 Export-ModuleMember -Function Get-StorageSystem
 Export-ModuleMember -Function Get-SynchroDataSource
 Export-ModuleMember -Function Get-SynchroReplica
@@ -1636,6 +1809,7 @@ Export-ModuleMember -Function New-VirtualMachineReplica
 Export-ModuleMember -Function New-Model
 Export-ModuleMember -Function New-Organization
 Export-ModuleMember -Function New-Person
+Export-ModuleMember -Function New-Software
 Export-ModuleMember -Function New-Team
 
 Export-ModuleMember -Function Set-FunctionalCI
